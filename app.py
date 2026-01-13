@@ -1,3 +1,5 @@
+print("🔥 VERSION 2026-01-13 VOLUME-PRICE")
+
 from flask import Flask, render_template, request, jsonify
 import yfinance as yf
 
