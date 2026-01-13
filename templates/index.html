@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>台股主力雷達</title>
+<style>
+body {
+    font-family: Arial;
+    background: #f5f5f5;
+    padding: 30px;
+}
+.box {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 900px;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+th {
+    background: #eee;
+}
+.green { color: green; font-weight: bold; }
+.yellow { color: orange; font-weight: bold; }
+.gray { color: gray; }
+
+.bar-container {
+    width: 150px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: auto;
+}
+.bar {
+    height: 14px;
+    background: steelblue;
+}
+.bar.high {
+    background: red;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+<h1>📈 台股主力監控系統</h1>
+
+<!-- 🔍 手動搜尋 -->
+<form method="post">
+    <input name="stock_id" placeholder="輸入股票代碼，例如 2330" required>
+    <button type="submit">查詢</button>
+</form>
+
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+
+{% if stock %}
+<hr>
+<h3>🔍 查詢結果</h3>
+<p>股票代碼：{{ stock.code }}</p>
+<p>最新價格：{{ stock.price }}</p>
+<p><strong>{{ stock.status }}</strong></p>
+
+<div class="bar-container">
+    <div class="bar {% if stock.volume_ratio >= 2 %}high{% endif %}"
+         style="width: {{ stock.volume_ratio * 50 }}px"></div>
+</div>
+<p>成交量強度：{{ stock.volume_ratio }}x</p>
+{% endif %}
+
+<hr>
+<h2>🚨 主力雷達（自動刷新）</h2>
+<p>每 20 秒更新</p>
+
+<table>
+<thead>
+<tr>
+<th>股票</th>
+<th>價格</th>
+<th>成交量強度</th>
+<th>主力狀態</th>
+</tr>
+</thead>
+<tbody id="radar"></tbody>
+</table>
+</div>
+
+<script>
+function loadRadar() {
+    fetch("/api/radar")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("radar");
+            tbody.innerHTML = "";
+
+            data.forEach(stock => {
+                let cls = "gray";
+                if (stock.status.includes("🟢")) cls = "green";
+                if (stock.status.includes("🟡")) cls = "yellow";
+
+                const width = Math.min(stock.volume_ratio * 50, 150);
+                const barClass = stock.volume_ratio >= 2 ? "bar high" : "bar";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${stock.code} ${stock.name}</td>
+                        <td>${stock.price}</td>
+                        <td>
+                            <div class="bar-container">
+                                <div class="${barClass}" style="width:${width}px"></div>
+                            </div>
+                            ${stock.volume_ratio}x
+                        </td>
+                        <td class="${cls}">${stock.status}</td>
+                    </tr>
+                `;
+            });
+        });
+}
+
+loadRadar();
+setInterval(loadRadar, 20000);
+</script>
+</body>
+</html>
