@@ -65,6 +65,22 @@ th {
 
 {% if stock %}
 <hr>
+
+<p>📌 最新價格：{{ stock.price }}</p>
+
+<p>📊 今日成交量：{{ stock.volume_today }}</p>
+<p>📊 昨日成交量：{{ stock.volume_yesterday }}</p>
+
+<p>
+  🔄 量變化：
+  {{ stock.volume_change_pct }} %
+</p>
+
+<p>
+  💡 量價判斷：
+  <strong>{{ stock.power }}</strong>
+</p>
+
 <h3>🔍 查詢結果</h3>
 <p>股票代碼：{{ stock.code }}</p>
 <p>最新價格：{{ stock.price }}</p>
